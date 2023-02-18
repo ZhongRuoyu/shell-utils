@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Clean up old local branches in a Homebrew tap.
+#
+# Usage: brew-cleanup-branches [tap]
+
+if [[ "$#" -gt 1 ]]; then
+  echo "Usage: ${0##*/} [tap]" >&2
+  exit 1
+fi
+
+repo="$(brew --repo "${1:-homebrew/core}")"
+
+git -C "$repo" checkout master
+git -C "$repo" fetch --all --prune
+
+# Delete branches without upstream.
+git -C "$repo" branch --format '%(refname:short) %(upstream)' |
+  grep -Ev '^[^[:space:]]+\s+[^[:space:]]+$' |
+  xargs git -C "$repo" branch -D
+
+# Delete branches with upstream gone.
+git -C "$repo" branch --format '%(refname:short) %(upstream:track)' |
+  sed -En 's/^([^[:space:]]+)[[:space:]]+\[gone\]$/\1/p' |
+  xargs git -C "$repo" branch -D
