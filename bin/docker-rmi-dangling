@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Remove dangling Docker images.
+
+# shellcheck disable=SC2046
+docker rmi $(docker images --filter="dangling=true" --no-trunc --quiet)
