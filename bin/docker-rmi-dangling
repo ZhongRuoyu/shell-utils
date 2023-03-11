@@ -2,5 +2,13 @@
 
 # Remove dangling Docker images.
 
-# shellcheck disable=SC2046
-docker rmi $(docker images --filter="dangling=true" --no-trunc --quiet)
+images=()
+while read -r image; do
+  images+=("$image")
+done < <(docker images --filter="dangling=true" --no-trunc --quiet)
+
+if [[ "${#images[@]}" -eq 0 ]]; then
+  exit 0
+fi
+
+docker rmi "${images[@]}"
